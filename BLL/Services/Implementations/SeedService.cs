@@ -66,7 +66,7 @@ namespace BLL.Services.Implementations
 
         public async Task SeedRoles()
         {
-            await SeedRole("Customer");
+            await SeedRole("User");
             await SeedRole("ServiceProvider");
 
         }

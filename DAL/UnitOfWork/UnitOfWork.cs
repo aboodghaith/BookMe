@@ -2,6 +2,7 @@
 using DAL.Models;
 using DAL.Repository.Implementations;
 using DAL.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,19 +19,29 @@ namespace DAL.UnitOfWork
 
         public IRepository<Booking> BookingRepo { get; private set; }
 
+        public IUserRepository UserRepository { get; private set; }
+
 
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
-            ServiceRepo = new BaseRepository<Service>(_context);
+            ServiceRepo = new BaseRepository<Service>(context);
 
-            BookingRepo = new BaseRepository<Booking>(_context); 
+            BookingRepo = new BaseRepository<Booking>(context);
+
+            UserRepository = new UserRepository(context);
+
         }
 
 
         public Task<int> SaveChanges()
         {
             return _context.SaveChangesAsync();
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
         }
     }
 }

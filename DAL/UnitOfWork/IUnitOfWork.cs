@@ -1,6 +1,7 @@
 ﻿using DAL.Data;
 using DAL.Models;
 using DAL.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,8 +16,11 @@ namespace DAL.UnitOfWork
 
         IRepository<Booking> BookingRepo { get;  }
 
-        public Task<int> SaveChanges();   
+        IUserRepository UserRepository { get; }
 
+        public Task<int> SaveChanges();
+
+        Task<IDbContextTransaction> BeginTransactionAsync();
 
     }
 }

@@ -1,10 +1,14 @@
 
 using BLL.Services.Implementations;
+using BLL.Services.Interfaces;
 using DAL.Data;
 using DAL.Models;
 using DAL.UnitOfWork;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace API_Layer
 {
@@ -46,16 +50,42 @@ namespace API_Layer
 
             // Add Unit Of Work 
             builder.Services.AddScoped<IUnitOfWork , UnitOfWork>();
+
+
+            // Services 
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
+
             // Add Identity 
             builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
                 options.Password.RequireLowercase = true;
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
-                options.Password.RequireUppercase = true;
+                options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
             }).AddEntityFrameworkStores<ApplicationDbContext>();
 
+            // Jwt
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+                };
+            });
 
 
             // SeedService 
@@ -70,18 +100,6 @@ namespace API_Layer
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-  
-
-                if(!context.Cities.Any())
-                {
-
-                    context.Cities.AddRange(
-                          new City { Name = "Cairo" },
-                          new City { Name = "Alexandria" }
-                        ); 
-                }
-
-                context.SaveChanges();
 
                 var servic = scope.ServiceProvider.GetRequiredService<SeedService>();
                 await servic.SeedAdmin();
