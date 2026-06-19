@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>API_Layer</RootNamespace>
     <UserSecretsId>eea71a58-84f0-47a7-b416-4786cb8617b4</UserSecretsId>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

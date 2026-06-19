@@ -16,6 +16,6 @@ namespace BLL.Common
 
         public List<string>? Errors { get; set; }
 
-        public int ? StatusCode { get; set; }
+        public int  StatusCode { get; set; }
     }
 }
