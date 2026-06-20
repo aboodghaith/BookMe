@@ -21,6 +21,9 @@ namespace DAL.UnitOfWork
 
         public IUserRepository UserRepository { get; private set; }
 
+        public IRepository<Category> CategoryRepository { get; private set; }
+
+        public IRepository<City> CityRepository { get; private set;}
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -30,6 +33,11 @@ namespace DAL.UnitOfWork
             BookingRepo = new BaseRepository<Booking>(context);
 
             UserRepository = new UserRepository(context);
+
+
+            CategoryRepository = new BaseRepository<Category>(context);
+
+            CityRepository = new BaseRepository<City>(context);
 
         }
 

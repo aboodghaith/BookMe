@@ -31,6 +31,10 @@ namespace DAL.Data
             builder.ApplyConfiguration(new UserConfig());
             builder.ApplyConfiguration(new ServiceConfig());
             builder.ApplyConfiguration(new BookingConfig());
+            builder.Entity<Category>().HasQueryFilter(c => !c.IsDeleted);
+            builder.Entity<City>().HasQueryFilter(c => !c.IsDeleted);
+
+
             base.OnModelCreating(builder);
         }
     }

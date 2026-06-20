@@ -34,8 +34,8 @@ namespace API_Layer
             });
 
             // Add services to the container.
-
             builder.Services.AddControllers();
+
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
@@ -82,20 +82,29 @@ namespace API_Layer
 
             });
 
+
+
             // Add DbContext
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("cs"));
             });
 
+
+
+
             // Add Unit Of Work 
             builder.Services.AddScoped<IUnitOfWork , UnitOfWork>();
+
+
 
 
             // Services 
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IUserService ,  UserService>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<ICityService, CityService>();
 
 
             // Add Identity 
