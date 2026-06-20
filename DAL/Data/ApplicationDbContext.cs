@@ -21,6 +21,10 @@ namespace DAL.Data
         public DbSet<City> Cities { get; set; }
 
         public DbSet<Booking> Bookings { get; set; }
+
+        public DbSet<SubscriptionType> SubscriptionTypes { get; set; }
+
+        public DbSet<Subscription> Subscriptions { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options):base(options) 
         {
             
