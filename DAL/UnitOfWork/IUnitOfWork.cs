@@ -18,6 +18,9 @@ namespace DAL.UnitOfWork
 
         IUserRepository UserRepository { get; }
 
+        IRepository<Category> CategoryRepository { get; }
+
+        IRepository<City> CityRepository { get; }
         public Task<int> SaveChanges();
 
         Task<IDbContextTransaction> BeginTransactionAsync();
