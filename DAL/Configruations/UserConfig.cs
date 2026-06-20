@@ -15,6 +15,7 @@ namespace DAL.Configruations
             builder.Property(u => u.Email).IsRequired(true);
             builder.Property(u => u.PhoneNumber).HasMaxLength(20);
 
+            builder.HasQueryFilter(u => !u.IsDeleted);
 
         }
     }

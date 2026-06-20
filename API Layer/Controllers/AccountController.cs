@@ -14,13 +14,13 @@ namespace API_Layer.Controllers
     {
         private readonly IAuthService _authService;
         private readonly UserManager<User> _userManager;
-        //private readonly IUserService _userService;
+        private readonly IUserService _userService;
 
-        public AccountController(IAuthService authService, UserManager<User> userManager)
+        public AccountController(IAuthService authService, UserManager<User> userManager, IUserService userService)
         {
             this._authService = authService;
             this._userManager = userManager;
-           
+            _userService = userService;
         }
 
         [HttpPost("register")]
@@ -53,7 +53,9 @@ namespace API_Layer.Controllers
         }
 
 
-
+        /// <summary>
+        /// Optional
+        /// </summary>
         [HttpPost("ForgetPassword")]
 
         public async Task<ActionResult<ApiResponse<object>>> ForgetPassword(ForgotPasswordDTO forgotPasswordDTO)
@@ -70,29 +72,29 @@ namespace API_Layer.Controllers
         }
 
 
-        //[HttpPut("ResetPassword")]
+        [HttpPut("ResetPassword")]
 
-        //public async Task<ActionResult<ApiResponse<object>>> ResetPassword(ResetPasswordDTO resetPasswordDTO)
-        //{
+        public async Task<ActionResult<ApiResponse<object>>> ResetPassword(ResetPasswordDTO resetPasswordDTO)
+        {
 
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState);
-
-
-        //    var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
-
-        //    if (user == null)
-        //        return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
 
-        //    var result = await _userService.UpdateUserPasswordAsync(resetPasswordDTO);
+            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
 
-        //    if (result.IsSuccess)
-        //    {
-        //        return Ok(result);
-        //    }
+            if (user == null)
+                return NotFound();
 
-        //    return BadRequest(ModelState);
-        //}
+
+            var result = await _userService.UpdateUserPasswordAsync(resetPasswordDTO);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(ModelState);
+        }
     }
 }
