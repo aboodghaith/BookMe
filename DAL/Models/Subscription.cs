@@ -19,6 +19,9 @@ namespace DAL.Models
 
         public int SubscriptionTypeId { get; set; } 
 
+        public string SubscriptionTypeName { get; set; }
+
+        public decimal SubscriptionPrice { get; set; } 
         public SubscriptionType? SubscriptionType { get; set; }
 
 

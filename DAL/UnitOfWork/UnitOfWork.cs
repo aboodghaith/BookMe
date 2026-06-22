@@ -25,6 +25,10 @@ namespace DAL.UnitOfWork
 
         public IRepository<City> CityRepository { get; private set;}
 
+        public IRepository<Subscription> SubscriptionRepository { get; private set;  }
+
+        public IRepository<SubscriptionType> SubscriptionTypeRepository { get; private set; }
+
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -38,6 +42,10 @@ namespace DAL.UnitOfWork
             CategoryRepository = new BaseRepository<Category>(context);
 
             CityRepository = new BaseRepository<City>(context);
+
+            SubscriptionRepository = new BaseRepository<Subscription>(context);
+
+            SubscriptionTypeRepository = new BaseRepository<SubscriptionType>(context);
 
         }
 

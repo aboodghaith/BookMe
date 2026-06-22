@@ -25,6 +25,8 @@ namespace DAL.Data
         public DbSet<SubscriptionType> SubscriptionTypes { get; set; }
 
         public DbSet<Subscription> Subscriptions { get; set; }
+
+        public DbSet<Payment> Payments { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options):base(options) 
         {
             
@@ -35,6 +37,10 @@ namespace DAL.Data
             builder.ApplyConfiguration(new UserConfig());
             builder.ApplyConfiguration(new ServiceConfig());
             builder.ApplyConfiguration(new BookingConfig());
+            builder.ApplyConfiguration(new SubscriptionConfig());
+            builder.ApplyConfiguration(new PaymentConfig());    
+            builder.ApplyConfiguration(new SubscriptionTypeConfig());
+            
             builder.Entity<Category>().HasQueryFilter(c => !c.IsDeleted);
             builder.Entity<City>().HasQueryFilter(c => !c.IsDeleted);
 
