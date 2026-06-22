@@ -4,6 +4,7 @@ using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260620162320_addSubsAndSubsTypeModel")]
+    partial class addSubsAndSubsTypeModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,48 +135,6 @@ namespace DAL.Migrations
                     b.ToTable("Cities");
                 });
 
-            modelBuilder.Entity("DAL.Models.Payment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreateAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PaymentStatus")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SubscriptionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SubscriptionTypeName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SubscriptionId")
-                        .IsUnique();
-
-                    b.HasIndex("SubscriptionId", "PaymentStatus");
-
-                    b.ToTable("Payments");
-                });
-
             modelBuilder.Entity("DAL.Models.Service", b =>
                 {
                     b.Property<int>("Id")
@@ -249,9 +210,7 @@ namespace DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -263,15 +222,8 @@ namespace DAL.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("SubscriptionPrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("SubscriptionTypeId")
                         .HasColumnType("int");
-
-                    b.Property<string>("SubscriptionTypeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -301,8 +253,7 @@ namespace DAL.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -557,17 +508,6 @@ namespace DAL.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("DAL.Models.Payment", b =>
-                {
-                    b.HasOne("DAL.Models.Subscription", "Subscription")
-                        .WithOne()
-                        .HasForeignKey("DAL.Models.Payment", "SubscriptionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Subscription");
-                });
-
             modelBuilder.Entity("DAL.Models.Service", b =>
                 {
                     b.HasOne("DAL.Models.Category", "Category")
@@ -606,7 +546,7 @@ namespace DAL.Migrations
                     b.HasOne("DAL.Models.SubscriptionType", "SubscriptionType")
                         .WithMany()
                         .HasForeignKey("SubscriptionTypeId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ServiceProvider");

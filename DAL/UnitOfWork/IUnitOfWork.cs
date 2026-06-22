@@ -21,6 +21,15 @@ namespace DAL.UnitOfWork
         IRepository<Category> CategoryRepository { get; }
 
         IRepository<City> CityRepository { get; }
+
+
+        IRepository<Subscription> SubscriptionRepository { get; }
+
+        IRepository<SubscriptionType> SubscriptionTypeRepository { get; }
+
+        IRepository<Payment> PaymentRepository { get; }
+
+
         public Task<int> SaveChanges();
 
         Task<IDbContextTransaction> BeginTransactionAsync();
