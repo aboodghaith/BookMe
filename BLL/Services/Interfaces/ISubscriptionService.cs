@@ -1,5 +1,6 @@
 ﻿using BLL.Common;
 using BLL.DTOs.SubscriptionDTOs;
+using DAL.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +16,22 @@ namespace BLL.Services.Interfaces
         // get subscripe (subscripe & Type) 
         // update (subscripe & Type)
         // delete Subscriepe (type)
-        Task<ApiResponse<bool>> CreateOrUpgradeSubscription(int subscriptionType , string user);
+        Task<ApiResponse<bool>> CreateOrUpgradeSubscription(int subscriptionType , string user , PaymentMethod method = PaymentMethod.DemoPayment);
 
 
-        Task<ApiResponse<bool>> IsActiveSubscription(string user); 
+        Task<ApiResponse<bool>> IsTheSubscriptionValid(string user);
 
-        Task<ApiResponse<SubscriptionReadDTO>> GetSubscriptionById(int subscriptionId);
+        Task<ApiResponse<List<SubscriptionReadDTO>>> GetAllSubscriptions();
+
+        Task<ApiResponse<List<SubscriptionTypeReadDTO>>> GetAllSubscriptionTypes();
+
+        Task<ApiResponse<SubscriptionTypeReadDTO>> CreateSubscriptionType(SubscriptionTypeCreateDTO dto);
+
+
+        Task<ApiResponse<SubscriptionTypeReadDTO>> UpdateSubscriptionType(int id, SubscriptionTypeCreateDTO dto);
+
+
+        Task<ApiResponse<bool>> DeleteSubscriptionType(int id);
+
     }
 }

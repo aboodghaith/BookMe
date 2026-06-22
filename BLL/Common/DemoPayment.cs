@@ -8,7 +8,7 @@ namespace BLL.Common
 {
     public class DemoPayment : IPaymentProcess
     {
-        public async Task<bool> Process()
+        public async Task<bool> Process(decimal Amount)
         {
             return await Task.FromResult(true);
         }

@@ -29,6 +29,8 @@ namespace DAL.UnitOfWork
 
         public IRepository<SubscriptionType> SubscriptionTypeRepository { get; private set; }
 
+        public IRepository<Payment> PaymentRepository { get;private set;}
+
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -47,6 +49,7 @@ namespace DAL.UnitOfWork
 
             SubscriptionTypeRepository = new BaseRepository<SubscriptionType>(context);
 
+            PaymentRepository = new BaseRepository<Payment>(context);
         }
 
 

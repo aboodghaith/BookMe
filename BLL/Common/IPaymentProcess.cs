@@ -8,6 +8,6 @@ namespace BLL.Common
 {
     public interface IPaymentProcess
     {
-        Task<bool> Process();
+        Task<bool> Process(decimal Amount);
     }
 }

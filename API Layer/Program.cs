@@ -1,4 +1,5 @@
 
+using BLL.Common;
 using BLL.Services.Implementations;
 using BLL.Services.Interfaces;
 using DAL.Data;
@@ -105,6 +106,12 @@ namespace API_Layer
             builder.Services.AddScoped<IUserService ,  UserService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ICityService, CityService>();
+            builder.Services.AddScoped<IServiceService, ServiceService>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddScoped<SeedService>();
+            builder.Services.AddScoped<IPaymentFactory , PaymentFactory>();
 
 
             // Add Identity 
@@ -139,8 +146,8 @@ namespace API_Layer
             });
 
 
-            // SeedService 
-            builder.Services.AddScoped<SeedService>();
+ 
+            
 
 
             var app = builder.Build();

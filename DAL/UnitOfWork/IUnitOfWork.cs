@@ -27,6 +27,9 @@ namespace DAL.UnitOfWork
 
         IRepository<SubscriptionType> SubscriptionTypeRepository { get; }
 
+        IRepository<Payment> PaymentRepository { get; }
+
+
         public Task<int> SaveChanges();
 
         Task<IDbContextTransaction> BeginTransactionAsync();
