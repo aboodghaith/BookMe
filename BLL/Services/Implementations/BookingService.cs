@@ -147,7 +147,7 @@ namespace BLL.Services.Implementations
             // 5 - 3 = 2 
             // 2 <= 2 -> so stop canceld 
 
-            var difference = booking.StartDateTime - DateTime.UtcNow;
+            var difference = booking.StartDateTime - DateTime.Now;
             if (difference.TotalHours <= CancelWindowHours)
             {
                 return ApiResponseHelper.Fail<object>($"You cannot cancel within {CancelWindowHours} hours of the booking", 400);
@@ -164,11 +164,66 @@ namespace BLL.Services.Implementations
         }
 
 
+
+
+
+
+
+        public async Task<ApiResponse<IEnumerable<BookingDTOForRead>>> GetCustomerBookingHistoryAsync(string customerId)
+        {
+          
+            var bookings = await _unitOfWork.BookingRepo.FindAllAsync(
+                b => b.CustomerId == customerId,
+                b => b.Service,
+                b => b.Service.ServiceProvider,
+                b => b.Customer
+            );
+
+  
+            var result = bookings.OrderByDescending(b => b.StartDateTime)
+                                 .Select(b => MapToReadDTO(b))
+                                 .ToList();
+
+            return ApiResponseHelper.Success<IEnumerable<BookingDTOForRead>>(
+                result,
+                "Customer booking history retrieved successfully.",
+                200
+            );
+        }
+
+
+        public async Task<ApiResponse<IEnumerable<BookingDTOForRead>>> GetProviderIncomingBookingsAsync(string providerId)
+        {
+
+            var bookings = await _unitOfWork.BookingRepo.FindAllAsync(
+                b => b.Service.ServiceProviderId == providerId,
+                b => b.Service,
+                b => b.Service.ServiceProvider,
+                b => b.Customer
+            );
+
+
+            var result = bookings.OrderBy(b => b.Status == BookingStatus.Pending ? 0 : 1)
+                                 .ThenByDescending(b => b.StartDateTime)
+                                 .Select(b => MapToReadDTO(b))
+                                 .ToList();
+
+            return ApiResponseHelper.Success<IEnumerable<BookingDTOForRead>>(
+                result,
+                "Provider incoming bookings retrieved successfully.",
+                200
+            );
+        }
+
+
+
+
+
         private Booking MapToEntity(BookingDTOForCreate dto, Service service , string customerId)
         {
             return new Booking
             {
-                StartDateTime = dto.StartDateTime.ToUniversalTime(),
+                StartDateTime = dto.StartDateTime,
                 EndDateTime = dto.StartDateTime.AddMinutes(service.EstimatedDuration),
 
                 CustomerId = customerId,

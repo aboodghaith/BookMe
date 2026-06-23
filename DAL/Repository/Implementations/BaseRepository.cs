@@ -85,7 +85,7 @@ namespace DAL.Repository.Implementations
 
             if (take.HasValue && skip.HasValue) { 
             
-            return Query.Skip(skip.Value).Take(take.Value).ToListAsync();
+            return Query.AsNoTracking().Skip(skip.Value).Take(take.Value).ToListAsync();
 
             }
 
