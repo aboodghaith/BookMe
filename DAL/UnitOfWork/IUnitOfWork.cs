@@ -34,5 +34,7 @@ namespace DAL.UnitOfWork
 
         Task<IDbContextTransaction> BeginTransactionAsync();
 
+
+        Task CommitAsync();
     }
 }

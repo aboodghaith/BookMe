@@ -62,5 +62,10 @@ namespace DAL.UnitOfWork
         {
             return await _context.Database.BeginTransactionAsync();
         }
+
+        public async Task CommitAsync()
+        {
+            await _context.Database.CommitTransactionAsync();
+        }
     }
 }

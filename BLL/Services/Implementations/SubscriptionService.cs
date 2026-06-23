@@ -6,13 +6,7 @@ using DAL.Enums;
 using DAL.Models;
 using DAL.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Formats.Asn1;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace BLL.Services.Implementations
 {
@@ -33,113 +27,147 @@ namespace BLL.Services.Implementations
             _roleManager = roleManager;
             _paymentService = paymentService;
         }
-        public async Task<ApiResponse<bool>> CreateOrUpgradeSubscription(int subscriptionType, string user , PaymentMethod method = PaymentMethod.DemoPayment)
+
+
+        public async Task<ApiResponse<bool>> CreateOrUpgradeSubscription(int subscriptionType, string user, PaymentMethod method = PaymentMethod.DemoPayment)
         {
-           var Subscription = await _unitOfWork.SubscriptionRepository.GetAsync(
-               s => s.ServiceProviderID == user && s.IsActive == true);
             var User = await _userManager.FindByIdAsync(user);
-            if (User == null)
-            {
-                return ApiResponseHelper.Fail<bool>("User not found", 404);
-            }
-            var role = await _roleManager.FindByNameAsync("ServiceProvider"); 
-            using var Transaction = await _unitOfWork.BeginTransactionAsync();
+            if (User == null) return ApiResponseHelper.Fail<bool>("User not found", 404);
 
+            var subscriptionPlan = await _unitOfWork.SubscriptionTypeRepository.GetAsync(st => st.Id == subscriptionType);
+            if (subscriptionPlan == null) return ApiResponseHelper.Fail<bool>("The Subscription Type Not Found", 404);
 
+            var existingSubscription = await _unitOfWork.SubscriptionRepository.GetAsync(s => s.ServiceProviderID == user && s.IsActive == true);
 
-
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
-            {           
-                
-                
-                if (role == null)
             {
-                await _roleManager.CreateAsync(new IdentityRole("ServiceProvider"));
+                await EnsureUserHasServiceProviderRole(User);
+
+                if (existingSubscription != null)
+                {
+                    ArchiveSubscription(existingSubscription);
+                }
+
+                var newSubscription = CreateNewSubscriptionEntity(user, subscriptionPlan);
+                _unitOfWork.SubscriptionRepository.Add(newSubscription);
+                await _unitOfWork.SaveChanges(); 
+
+         
+                var payment = PrepareInitialPayment(newSubscription, subscriptionPlan.Name, User.UserName, method);
 
                
-            }
-                var isUserInRole = await _userManager.IsInRoleAsync(User, "ServiceProvider");
-                if (!isUserInRole)
+                var paymentStrategy = _paymentFactory.GetPaymentStrategy(method);
+                var isPaymentSuccess = await paymentStrategy.Process(newSubscription.SubscriptionPrice);
+
+                if (!isPaymentSuccess)
                 {
-                    var addToRoleResult = await _userManager.AddToRoleAsync(User, "ServiceProvider");
-                    if (!addToRoleResult.Succeeded)
-                    {
-                        throw new Exception("Failed to assign ServiceProvider role to user");
-                    }
+                    await HandlePaymentFailure(payment, newSubscription, existingSubscription);
+                    return ApiResponseHelper.Fail<bool>("Problem with the payment process", 400);
                 }
 
-                if (Subscription != null)
-                {
-
-                    Subscription.IsActive = false;
-                    Subscription.IsDeleted = true; 
-                    _unitOfWork.SubscriptionRepository.Update( Subscription );
-                }
-
-                var SubscriptionType = await _unitOfWork.SubscriptionTypeRepository.GetAsync(st => st.Id == subscriptionType);
-                if(SubscriptionType == null)
-                {
-                    return ApiResponseHelper.Fail<bool>("The Subscription Type Not Found" , 404);
-                }
-                var StartDate = DateTime.Now;
-                var EndDate = DateTime.Now.AddDays(SubscriptionType.DurationDays);
-                var NewSubscription = new Subscription
-                {
-                     StartDate = StartDate, 
-                     EndDate = EndDate, 
-                     ServiceProviderID = user , 
-                     IsActive = true , 
-                     SubscriptionTypeId = SubscriptionType.Id, 
-                     SubscriptionTypeName = SubscriptionType.Name, 
-                     SubscriptionPrice = SubscriptionType.Price,
-                };
-
-                _unitOfWork.SubscriptionRepository.Add(NewSubscription);
-
-                if(await _unitOfWork.SaveChanges() <= 0 )
-                {
-                    throw new Exception("Failed To Create Subscription");
-                }
-
-                var PaymentStratgy = _paymentFactory.GetPaymentStrategy(method);
-
-                var PaymentProcces = await PaymentStratgy.Process(NewSubscription.SubscriptionPrice);
-                if (!PaymentProcces)
-                    return ApiResponseHelper.Fail<bool>("Problem with the payment process");
-
-          
-                var Payment = new Payment
-                {
-                     Amount = NewSubscription.SubscriptionPrice, 
-                     PaymentMethod = method , 
-                      PaymentStatus = PaymentStatus.Paid , 
-                       SubscriptionId = NewSubscription.Id ,
-                       SubscriptionTypeName = SubscriptionType.Name , 
-                        UserName = User?.UserName , 
-                        
-                };
-
-
-                var isPaymentSaved = await _paymentService.CreatePaymentAsync(Payment);
+                payment.PaymentStatus = PaymentStatus.Paid;
+                var isPaymentSaved = await _paymentService.CreatePaymentAsync(payment);
                 if (!isPaymentSaved)
                 {
-                    throw new Exception("Failed To Create Payment via PaymentService");
+
+                    throw new Exception("Payment succeeded via gateway, but database failed to save the record.");
                 }
 
-                
-
-               await Transaction.CommitAsync();
-
-                return ApiResponseHelper.Success<bool>(true , "Create Subscription Succsessfaly" , 201);
-
+                await transaction.CommitAsync();
+                return ApiResponseHelper.Success<bool>(true, "Create Subscription Successfully", 201);
             }
-            catch (Exception ex) {
-
-
-                await Transaction.RollbackAsync();
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
                 return ApiResponseHelper.Fail<bool>($"Subscription failed: {ex.Message}", 500);
-            } 
+            }
         }
+
+        #region Private Helper Methods 
+
+        private async Task EnsureUserHasServiceProviderRole(User user)
+        {
+            var role = await _roleManager.FindByNameAsync("ServiceProvider");
+            if (role == null)
+            {
+                await _roleManager.CreateAsync(new IdentityRole("ServiceProvider"));
+            }
+
+            var isUserInRole = await _userManager.IsInRoleAsync(user, "ServiceProvider");
+            if (!isUserInRole)
+            {
+                var addToRoleResult = await _userManager.AddToRoleAsync(user, "ServiceProvider");
+                if (!addToRoleResult.Succeeded)
+                {
+                    throw new Exception("Failed to assign ServiceProvider role to user");
+                }
+            }
+        }
+
+        private void ArchiveSubscription(Subscription subscription)
+        {
+            subscription.IsActive = false;
+            subscription.IsDeleted = true;
+            _unitOfWork.SubscriptionRepository.Update(subscription);
+        }
+
+        private Subscription CreateNewSubscriptionEntity(string userId, SubscriptionType plan)
+        {
+            return new Subscription
+            {
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(plan.DurationDays),
+                ServiceProviderID = userId,
+                IsActive = true,
+                SubscriptionTypeId = plan.Id,
+                SubscriptionTypeName = plan.Name,
+                SubscriptionPrice = plan.Price,
+                
+            };
+        }
+
+        private Payment PrepareInitialPayment(Subscription subscription, string planName, string? userName, PaymentMethod method)
+        {
+            return new Payment
+            {
+                Amount = subscription.SubscriptionPrice,
+                PaymentMethod = method,
+                PaymentStatus = PaymentStatus.Pending,
+                SubscriptionId = subscription.Id,
+                SubscriptionTypeName = planName,
+                UserName = userName,
+            };
+        }
+
+        private async Task HandlePaymentFailure(Payment payment, Subscription newSubscription, Subscription? oldSubscription)
+        {
+         
+            payment.PaymentStatus = PaymentStatus.Failed;
+            _unitOfWork.PaymentRepository.Add(payment);
+
+            newSubscription.IsActive = false;
+            newSubscription.IsDeleted = true;
+            _unitOfWork.SubscriptionRepository.Update(newSubscription);
+
+            if (oldSubscription != null)
+            {
+                oldSubscription.IsActive = true;
+                oldSubscription.IsDeleted = false;
+                _unitOfWork.SubscriptionRepository.Update(oldSubscription);
+            }
+
+            await _unitOfWork.SaveChanges();
+            await _unitOfWork.CommitAsync(); 
+        }
+
+        
+
+        #endregion
+
+
+
+
 
         #region Subscription Read Operations
 
@@ -172,33 +200,57 @@ namespace BLL.Services.Implementations
 
         public async Task<ApiResponse<List<SubscriptionReadDTO>>> GetAllSubscriptions()
         {
-            var subscriptions = await _unitOfWork.SubscriptionRepository.GetAllAsync();
-            if (subscriptions == null || !subscriptions.Any())
+            var Subscriptions = await _unitOfWork.SubscriptionRepository.GetAllAsync();
+            if (Subscriptions == null || !Subscriptions.Any())
             {
                 return ApiResponseHelper.Fail<List<SubscriptionReadDTO>>("No subscriptions found", 404);
             }
 
-            var dtoList = new List<SubscriptionReadDTO>();
-            foreach (var sub in subscriptions)
-            {
-                var userObj = await _userManager.FindByIdAsync(sub.ServiceProviderID);
-                dtoList.Add(new SubscriptionReadDTO
-                {
-                    Id = sub.Id,
-                    StartDate = sub.StartDate,
-                    EndDate = sub.EndDate,
-                    IsActive = sub.IsActive,
-                    ServiceProviderId = sub.ServiceProviderID,
-                    ProviderName = userObj?.UserName,
-                    SubscriptionTypeId = sub.SubscriptionTypeId,
-                    SubscriptionTypeName = sub.SubscriptionTypeName,
-                    PricePaid = sub.SubscriptionPrice
-                });
-            }
 
-            return ApiResponseHelper.Success<List<SubscriptionReadDTO>>(dtoList, "All subscriptions retrieved successfully", 200);
+            var DtoList = Subscriptions.Select(s => new SubscriptionReadDTO
+            {
+                Id = s.Id,
+                IsActive = s.IsActive,
+                StartDate = s.StartDate,
+                EndDate = s.EndDate,
+                PricePaid = s.SubscriptionPrice,
+                ProviderName = s.ServiceProvider?.UserName,
+                ServiceProviderId = s.ServiceProviderID,
+                SubscriptionTypeId = s.SubscriptionTypeId,
+                SubscriptionTypeName = s.SubscriptionTypeName,
+            }).ToList();
+
+            return ApiResponseHelper.Success(DtoList, "All subscriptions retrieved successfully", 200);
+
         }
 
+
+        public async Task<ApiResponse<List<SubscriptionReadDTO>>> GetAllSubscriptions(int pageNumber = 1, int PageSize = 10)
+        {
+            if (pageNumber <= 0) pageNumber = 1; 
+            if(PageSize <= 0) PageSize = 10;
+
+            var Subscriptions = await _unitOfWork.SubscriptionRepository.GetAllAsync(false, (pageNumber - 1) * PageSize, PageSize,
+                s=> s.ServiceProvider 
+                );
+
+            if(Subscriptions == null || !Subscriptions.Any())
+                return ApiResponseHelper.Fail<List<SubscriptionReadDTO>>("No subscriptions found", 404);
+
+            var DtoList =  Subscriptions.Select(s => new SubscriptionReadDTO { 
+                Id = s.Id,
+                IsActive = s.IsActive,
+                StartDate = s.StartDate, 
+                EndDate = s.EndDate, 
+                PricePaid = s.SubscriptionPrice ,
+                ProviderName = s.ServiceProvider?.UserName , 
+                ServiceProviderId = s.ServiceProviderID , 
+                SubscriptionTypeId = s.SubscriptionTypeId,
+                SubscriptionTypeName = s.SubscriptionTypeName,
+            }).ToList();
+
+            return ApiResponseHelper.Success(DtoList, "All subscriptions retrieved successfully", 200);
+        }
         #endregion
 
         #region Subscription Type CRUD Operations
@@ -325,5 +377,7 @@ namespace BLL.Services.Implementations
             await _unitOfWork.SaveChanges();
             return ApiResponseHelper.Fail<bool>("The subscription has expired and is no longer valid.");
         }
+
+     
     }
 }

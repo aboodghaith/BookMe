@@ -23,6 +23,11 @@ namespace BLL.Services.Interfaces
 
         Task<ApiResponse<List<SubscriptionReadDTO>>> GetAllSubscriptions();
 
+
+        Task<ApiResponse<List<SubscriptionReadDTO>>> GetAllSubscriptions(int pageNumber = 1 , int PageSize = 10);
+
+
+
         Task<ApiResponse<List<SubscriptionTypeReadDTO>>> GetAllSubscriptionTypes();
 
         Task<ApiResponse<SubscriptionTypeReadDTO>> CreateSubscriptionType(SubscriptionTypeCreateDTO dto);

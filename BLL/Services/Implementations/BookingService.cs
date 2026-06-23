@@ -27,7 +27,7 @@ namespace BLL.Services.Implementations
 
             var Service = await _unitOfWork.ServiceRepo.GetAsync(s => s.Id == booking.ServiceId);
 
-            if (booking.StartDateTime <= DateTime.UtcNow)
+            if (booking.StartDateTime <= DateTime.Now)
             {
                 return ApiResponseHelper.Fail<BookingDTOForRead>("Cannot book a slot in the past", 400);
             }
@@ -169,7 +169,7 @@ namespace BLL.Services.Implementations
             return new Booking
             {
                 StartDateTime = dto.StartDateTime.ToUniversalTime(),
-                EndDateTime = dto.StartDateTime.AddMinutes(service.EstimatedDuration).ToUniversalTime(),
+                EndDateTime = dto.StartDateTime.AddMinutes(service.EstimatedDuration),
 
                 CustomerId = customerId,
                 ServiceId = dto.ServiceId,

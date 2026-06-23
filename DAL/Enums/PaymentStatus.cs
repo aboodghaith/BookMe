@@ -10,6 +10,7 @@ namespace DAL.Enums
     {
         Pending,
         Paid,
-        Refunded
+        Refunded,
+         Failed
     }
 }
