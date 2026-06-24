@@ -20,8 +20,9 @@ namespace BLL.Services.Implementations
         }
         public async Task<ApiResponse<BookingDTOForRead>> CreateBookingAsync(BookingDTOForCreate booking , string customerId)
         {
+            var ServiceId = booking.ServiceId;
 
-            var HasService = await _unitOfWork.ServiceRepo.AnyAsync(s => s.Id == booking.ServiceId);
+            var HasService = await _unitOfWork.ServiceRepo.AnyAsync(s => s.Id == ServiceId);
             if(!HasService)
                 return ApiResponseHelper.Fail<BookingDTOForRead>("The service is not available", 400);
 
@@ -169,7 +170,7 @@ namespace BLL.Services.Implementations
 
 
 
-        public async Task<ApiResponse<IEnumerable<BookingDTOForRead>>> GetCustomerBookingHistoryAsync(string customerId)
+        public async Task<ApiResponse<List<BookingDTOForRead>>> GetCustomerBookingHistoryAsync(string customerId)
         {
           
             var bookings = await _unitOfWork.BookingRepo.FindAllAsync(
@@ -184,7 +185,7 @@ namespace BLL.Services.Implementations
                                  .Select(b => MapToReadDTO(b))
                                  .ToList();
 
-            return ApiResponseHelper.Success<IEnumerable<BookingDTOForRead>>(
+            return ApiResponseHelper.Success<List<BookingDTOForRead>>(
                 result,
                 "Customer booking history retrieved successfully.",
                 200
@@ -192,7 +193,7 @@ namespace BLL.Services.Implementations
         }
 
 
-        public async Task<ApiResponse<IEnumerable<BookingDTOForRead>>> GetProviderIncomingBookingsAsync(string providerId)
+        public async Task<ApiResponse<List<BookingDTOForRead>>> GetProviderIncomingBookingsAsync(string providerId)
         {
 
             var bookings = await _unitOfWork.BookingRepo.FindAllAsync(
@@ -208,7 +209,7 @@ namespace BLL.Services.Implementations
                                  .Select(b => MapToReadDTO(b))
                                  .ToList();
 
-            return ApiResponseHelper.Success<IEnumerable<BookingDTOForRead>>(
+            return ApiResponseHelper.Success<List<BookingDTOForRead>>(
                 result,
                 "Provider incoming bookings retrieved successfully.",
                 200

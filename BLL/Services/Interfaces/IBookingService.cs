@@ -17,5 +17,11 @@ namespace BLL.Services.Interfaces
         public Task<ApiResponse<object>> CancelledBookingAsync(int bookingId , string customerId);
 
 
+
+        public Task<ApiResponse<List<BookingDTOForRead>>> GetCustomerBookingHistoryAsync(string customerId);
+
+        public Task<ApiResponse<List<BookingDTOForRead>>> GetProviderIncomingBookingsAsync(string providerId);
+
+
     }
 }
