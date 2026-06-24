@@ -322,6 +322,8 @@ namespace BLL.Services.Implementations
             // 2 : comparison and get all availablety bookings based on Serviece Work and Estimation duration 
 
             var ServiceFromDb = await _unitOfWork.ServiceRepo.GetAsync(s => s.Id  == serviceId);
+            if (ServiceFromDb.CreateAt.Date > date)
+                return ApiResponseHelper.Fail<List<TimeSlotDTOForRead>>("Available time slots cannot be retrieved for past dates");
             var TimeSlots = new List<TimeSlotDTOForRead>(); 
             var StartWork = date.Date.Add(ServiceFromDb.StartWork);
             var EndWork = date.Date.Add(ServiceFromDb.EndWork);

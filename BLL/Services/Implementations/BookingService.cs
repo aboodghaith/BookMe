@@ -20,8 +20,9 @@ namespace BLL.Services.Implementations
         }
         public async Task<ApiResponse<BookingDTOForRead>> CreateBookingAsync(BookingDTOForCreate booking , string customerId)
         {
+            var ServiceId = booking.ServiceId;
 
-            var HasService = await _unitOfWork.ServiceRepo.AnyAsync(s => s.Id == booking.ServiceId);
+            var HasService = await _unitOfWork.ServiceRepo.AnyAsync(s => s.Id == ServiceId);
             if(!HasService)
                 return ApiResponseHelper.Fail<BookingDTOForRead>("The service is not available", 400);
 
