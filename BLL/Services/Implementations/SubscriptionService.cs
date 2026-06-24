@@ -71,6 +71,8 @@ namespace BLL.Services.Implementations
                 if (!isPaymentSaved)
                 {
 
+                    //////////////////////////////////
+
                     throw new Exception("Payment succeeded via gateway, but database failed to save the record.");
                 }
 
@@ -108,7 +110,6 @@ namespace BLL.Services.Implementations
         private void ArchiveSubscription(Subscription subscription)
         {
             subscription.IsActive = false;
-            subscription.IsDeleted = true;
             _unitOfWork.SubscriptionRepository.Update(subscription);
         }
 
@@ -147,13 +148,11 @@ namespace BLL.Services.Implementations
             _unitOfWork.PaymentRepository.Add(payment);
 
             newSubscription.IsActive = false;
-            newSubscription.IsDeleted = true;
             _unitOfWork.SubscriptionRepository.Update(newSubscription);
 
             if (oldSubscription != null)
             {
                 oldSubscription.IsActive = true;
-                oldSubscription.IsDeleted = false;
                 _unitOfWork.SubscriptionRepository.Update(oldSubscription);
             }
 
