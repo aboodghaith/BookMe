@@ -112,7 +112,9 @@ namespace API_Layer
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
             builder.Services.AddScoped<SeedService>();
             builder.Services.AddScoped<IPaymentFactory , PaymentFactory>();
-
+            builder.Services.AddScoped<IImageService , ImageService>();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<IUrlService, UrlService>();
 
             // Add Identity 
             builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -175,6 +177,8 @@ namespace API_Layer
 
             app.UseCors("AllowFrontend");
 
+            app.UseStaticFiles();
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
@@ -192,3 +196,4 @@ namespace API_Layer
 // 2 : create crud and business logic of Service Model 
 // 3 : create crud and business logic of Booking Model 
 // 4 : create crud and business logic of User Model 
+// 5 : create crud and business logic of Subscription Model

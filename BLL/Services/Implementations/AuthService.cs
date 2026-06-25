@@ -16,12 +16,16 @@ namespace BLL.Services.Implementations
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ITokenService _tokenService;
-
-        public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, ITokenService tokenService)
+        private readonly IImageService _imageService;
+        private readonly IUrlService _urlService;
+        public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, ITokenService tokenService,
+            IImageService imageService , IUrlService urlService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _tokenService = tokenService;
+            _imageService = imageService;
+            _urlService = urlService;
         }
 
 
@@ -68,6 +72,8 @@ namespace BLL.Services.Implementations
                 return ApiResponseHelper.Fail<object>("Email already exists", 400);
             }
 
+            var ImageFile = await _imageService.UploadImageAsync(registerDTO.ImagePath, "images");
+
             var user = new User
             {
                 FirstName = registerDTO.FirstName,
@@ -77,7 +83,7 @@ namespace BLL.Services.Implementations
                 UserName = registerDTO.Email,
                 PhoneNumber = registerDTO.PhoneNumber,
                 Description = registerDTO?.Description ?? string.Empty,
-                ImagePath = registerDTO?.ImagePath ?? string.Empty,
+                ImagePath = string.IsNullOrEmpty(ImageFile) ? null : ImageFile
             };
 
             var result = await _userManager.CreateAsync(user, registerDTO.Password);

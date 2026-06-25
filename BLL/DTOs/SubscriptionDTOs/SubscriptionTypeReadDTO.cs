@@ -18,6 +18,8 @@ namespace BLL.DTOs.SubscriptionDTOs
         public int DurationDays { get; set; } 
 
         public decimal Price { get; set; } 
+
+        public string? ImagePath { get; set; }
         
     }
 }

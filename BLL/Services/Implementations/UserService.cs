@@ -6,6 +6,7 @@ using DAL.Models;
 using DAL.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,20 +20,24 @@ namespace BLL.Services.Implementations
 
         private readonly UserManager<User> _userManager;
 
-        private readonly RoleManager<IdentityRole> _roleManager; 
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public UserService(IUnitOfWork unitOfWork, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        private readonly IImageService _imageService; 
+        private readonly IUrlService _urlService;     
+        public UserService(IUnitOfWork unitOfWork, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IImageService imageService, IUrlService urlService)
         {
             _unitOfWork = unitOfWork;
 
             _userManager = userManager;
             _roleManager = roleManager;
+            _imageService = imageService;
+            _urlService = urlService;     
         }
 
         public async Task<ApiResponse<List<UserReadDTO>>> GetAllUsersAsync(bool ignoreDeleted = true)
         {
             var users = await _unitOfWork.UserRepository.GetAllUserAsync(ignoreDeleted);
-
+            var baseUrl = _urlService.GetBaseUrl();
             var userDtos = users.Select(u => new UserReadDTO
             {
                 Id = u.Id,
@@ -41,7 +46,7 @@ namespace BLL.Services.Implementations
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
                 Address = u.Address,
-                ImagePath = u.ImagePath,
+                ImagePath = string.IsNullOrEmpty(u.ImagePath) ? null : $"{baseUrl}{u.ImagePath}",
                 Description = u.Description
             }).ToList();
 
@@ -56,7 +61,7 @@ namespace BLL.Services.Implementations
             }
 
             var users = await _unitOfWork.UserRepository.GetAllUserWithPaginationAsync(pageNumber, pageSize, ignoreDeleted);
-
+            var baseUrl = _urlService.GetBaseUrl();
             var userDtos = users.Select(u => new UserReadDTO
             {
                 Id = u.Id,
@@ -65,7 +70,7 @@ namespace BLL.Services.Implementations
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
                 Address = u.Address,
-                ImagePath = u.ImagePath, 
+                ImagePath = string.IsNullOrEmpty(u.ImagePath) ? null : $"{baseUrl}{u.ImagePath}",
                 Description = u.Description
             }).ToList();
 
@@ -80,6 +85,7 @@ namespace BLL.Services.Implementations
             {
                 return ApiResponseHelper.Fail<UserReadDTO>("User not found.", 404);
             }
+            var baseUrl = _urlService.GetBaseUrl();
 
             var userDto = new UserReadDTO
             {
@@ -89,7 +95,7 @@ namespace BLL.Services.Implementations
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 Address = user.Address,
-                ImagePath = user.ImagePath,
+                ImagePath = string.IsNullOrEmpty(user.ImagePath) ? null : $"{baseUrl}{user.ImagePath}",
                 Description = user.Description
             };
 
@@ -122,15 +128,16 @@ namespace BLL.Services.Implementations
             {
                 return ApiResponseHelper.Fail<bool>("User not found.", 404);
             }
-
+            var ImageFile = await _imageService.UploadImageAsync(userDto.ImagePath, "images");
+            
             user.FirstName = userDto.FirstName;
             user.LastName = userDto.LastName;
             user.PhoneNumber = userDto.PhoneNumber;
             user.Address = userDto.Address;
             user.Description = userDto.Description;
-            if (!string.IsNullOrEmpty(userDto.ImagePath))
+            if (!string.IsNullOrEmpty(ImageFile))
             {
-                user.ImagePath = userDto.ImagePath;
+                user.ImagePath = ImageFile; 
             }
 
             _unitOfWork.UserRepository.Update(user);
@@ -189,7 +196,7 @@ namespace BLL.Services.Implementations
 
             var allUsersInRole = await _userManager.GetUsersInRoleAsync(roleName);
 
-            
+            var baseUrl = _urlService.GetBaseUrl();
             var paginatedUsers = allUsersInRole
                 .Where(u => !ignoreDeleted || !u.IsDeleted)
                 .Skip((pageNumber - 1) * pageSize)
@@ -202,7 +209,7 @@ namespace BLL.Services.Implementations
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
                     Address = u.Address,
-                    ImagePath = u.ImagePath,
+                    ImagePath = string.IsNullOrEmpty(u.ImagePath) ? null : $"{baseUrl}{u.ImagePath}",
                     Description = u.Description
                 }).ToList();
 

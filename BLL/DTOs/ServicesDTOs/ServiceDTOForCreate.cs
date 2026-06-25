@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace BLL.DTOs.ServicesDTOs
         [Range(1, int.MaxValue, ErrorMessage = "Please select a category")]
         public int CategoryId { get; set; }
 
-        public string? ImagePath { get; set; }
+        public IFormFile? ImagePath { get; set; }
 
     }
 }

@@ -13,7 +13,7 @@ namespace BLL.DTOs.CategoryDTOs
 
         public string Description { get; set; } = string.Empty;
 
-        public string ImagePath { get; set; } = string.Empty;
+        public string ImagePath { get; set; }
 
     }
 }

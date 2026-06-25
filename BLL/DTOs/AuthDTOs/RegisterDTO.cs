@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace BLL.DTOs.AuthDTOs
         public string PhoneNumber { get; set; }
 
 
-        public string? ImagePath { get; set; }
+        public IFormFile? ImagePath { get; set; }
 
         public string? Description { get; set; }
 

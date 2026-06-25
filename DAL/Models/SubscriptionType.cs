@@ -16,5 +16,7 @@ namespace DAL.Models
 
 
         public int DurationDays { get; set; } 
+
+        public string? ImagePath { get; set; } 
     }
 }

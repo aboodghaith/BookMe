@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,5 +21,8 @@ namespace BLL.DTOs.SubscriptionDTOs
         [Required(ErrorMessage = "Price is required")]
         
         public decimal Price { get; set; }
+
+
+        public IFormFile? ImagePath { get; set; } 
     }
 }

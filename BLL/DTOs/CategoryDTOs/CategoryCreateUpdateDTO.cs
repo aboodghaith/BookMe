@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -18,6 +19,6 @@ namespace BLL.DTOs.CategoryDTOs
         public string? Description { get; set; } = string.Empty;
 
 
-        public string? ImagePath { get; set; } = string.Empty;
+        public IFormFile? ImagePath { get; set; }
     }
 }

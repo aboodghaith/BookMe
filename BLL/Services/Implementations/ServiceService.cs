@@ -10,13 +10,21 @@ namespace BLL.Services.Implementations
     public class ServiceService : IServiceService
     {
         private readonly IUnitOfWork _unitOfWork;
-        
-        public ServiceService(IUnitOfWork unitOfWork)
+        private readonly IUrlService _urlService;
+        private readonly IImageService _imageService;
+
+        public ServiceService(IUnitOfWork unitOfWork, IUrlService urlService, IImageService imageService)
         {
             _unitOfWork = unitOfWork;
+            _urlService = urlService;
+            _imageService = imageService;
         }
         public async Task<ApiResponse<ServiceDTOForRead>> CreateServiceAsync(ServiceDTOForCreate service , string providerId)
         {
+            if (service.EndWork.TotalHours >= 24)
+            {
+                return ApiResponseHelper.Fail<ServiceDTOForRead>("EndWork must be less than 24 hours (maximum 23:59:59)", 400);
+            }
             if (service.StartWork >= service.EndWork)
             {
                 return ApiResponseHelper.Fail<ServiceDTOForRead>(
@@ -24,8 +32,9 @@ namespace BLL.Services.Implementations
                     400
                 );
             }
+            var ImageFile = await _imageService.UploadImageAsync(service.ImagePath, "images");
 
-            var serviceEntity = MapToEntity(service , providerId);
+            var serviceEntity = MapToEntity(service , providerId , ImageFile);
             var TotalWorkMinutes = (serviceEntity.EndWork - serviceEntity.StartWork).TotalMinutes;
 
             if (TotalWorkMinutes < serviceEntity.EstimatedDuration)
@@ -239,10 +248,13 @@ namespace BLL.Services.Implementations
             }
 
 
+            var ImageFile = await _imageService.UploadImageAsync(service.ImagePath, "images");
+
+
             ServiceFromDb.Name = service.Name;
             ServiceFromDb.Description = service.Description;
             ServiceFromDb.Price = service.Price;
-            ServiceFromDb.ImagePath = service.ImagePath;
+            ServiceFromDb.ImagePath = string.IsNullOrEmpty(ImageFile) ? null : ImageFile;
             ServiceFromDb.StartWork = service.StartWork;
             ServiceFromDb.EndWork = service.EndWork;
             ServiceFromDb.EstimatedDuration = service.EstimatedDuration;
@@ -375,7 +387,7 @@ namespace BLL.Services.Implementations
 
 
         // Mapper 
-        private Service MapToEntity(ServiceDTOForCreate dto , string providerId)
+        private Service MapToEntity(ServiceDTOForCreate dto , string providerId , string ImageFile)
         {
             return new Service
             {
@@ -385,7 +397,7 @@ namespace BLL.Services.Implementations
                 EndWork = dto.EndWork,
                 EstimatedDuration = dto.EstimatedDuration,
                 Price = dto.Price,
-                ImagePath = dto.ImagePath,
+                ImagePath = string.IsNullOrEmpty(ImageFile) ? null : ImageFile,
                 ServiceProviderId = providerId,
                 CategoryId = dto.CategoryId,
                 CityId = dto.CityId
@@ -405,7 +417,7 @@ namespace BLL.Services.Implementations
                 EstimatedDuration = service.EstimatedDuration,
                 StartWork = service.StartWork,
                 EndWork = service.EndWork,
-                ImagePath = service.ImagePath,
+                ImagePath = string.IsNullOrEmpty(service.ImagePath) ? null : $"{_urlService.GetBaseUrl()}{service.ImagePath}",
                 ProviderName = service.ServiceProvider?.UserName,
                 CategoryName = service.Category?.Name,
                 CityName = service.City?.Name

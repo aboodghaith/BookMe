@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace BLL.DTOs.UserDTOs
         [MinLength(2, ErrorMessage = "MinLength is 2 characters")]
         public string Address { get; set; }
 
-        public string? ImagePath { get; set; }
+        public IFormFile? ImagePath { get; set; }
 
         public string? Description{ get; set; }
     }

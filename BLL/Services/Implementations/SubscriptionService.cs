@@ -1,4 +1,5 @@
-﻿using BLL.Common;
+﻿using Azure.Core;
+using BLL.Common;
 using BLL.DTOs.SubscriptionDTOs;
 using BLL.DTOs.UserDTOs;
 using BLL.Services.Interfaces;
@@ -6,6 +7,7 @@ using DAL.Enums;
 using DAL.Models;
 using DAL.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace BLL.Services.Implementations
@@ -18,15 +20,21 @@ namespace BLL.Services.Implementations
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IPaymentService _paymentService;
-        public SubscriptionService(IUnitOfWork unitOfWork , IPaymentFactory paymentFactory , 
-            UserManager<User> userManager , RoleManager<IdentityRole> roleManager , IPaymentService paymentService)
+        private readonly IImageService _imageService;
+        private readonly IUrlService _urlService;
+        public SubscriptionService(IUnitOfWork unitOfWork , IPaymentFactory paymentFactory,
+            UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IPaymentService paymentService, IImageService imageService, IUrlService urlService)
         {
             _unitOfWork = unitOfWork;
             _paymentFactory = paymentFactory;
             _userManager = userManager;
             _roleManager = roleManager;
             _paymentService = paymentService;
+            _imageService = imageService;
+            _urlService = urlService;
         }
+
+
 
 
         public async Task<ApiResponse<bool>> CreateOrUpgradeSubscription(int subscriptionType, string user, PaymentMethod method = PaymentMethod.DemoPayment)
@@ -267,7 +275,9 @@ namespace BLL.Services.Implementations
                 Id = t.Id,
                 Name = t.Name,
                 DurationDays = t.DurationDays,
-                Price = t.Price
+                Price = t.Price,
+                ImagePath = string.IsNullOrEmpty(t.ImagePath) ? null : $"{_urlService.GetBaseUrl()}{t.ImagePath}",
+                
             }).ToList();
 
             return ApiResponseHelper.Success(dtoList, "Subscription plans retrieved successfully", 200);
@@ -275,11 +285,15 @@ namespace BLL.Services.Implementations
 
         public async Task<ApiResponse<SubscriptionTypeReadDTO>> CreateSubscriptionType(SubscriptionTypeCreateDTO dto)
         {
+           
+            var ImageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
             var newType = new SubscriptionType
             {
                 Name = dto.Name,
                 DurationDays = dto.DurationDays,
-                Price = dto.Price
+                Price = dto.Price,
+                ImagePath = string.IsNullOrEmpty(ImageFile) ? null : ImageFile
+
             };
 
             _unitOfWork.SubscriptionTypeRepository.Add(newType);
@@ -288,13 +302,14 @@ namespace BLL.Services.Implementations
             {
                 return ApiResponseHelper.Fail<SubscriptionTypeReadDTO>("Failed to create subscription plan", 500);
             }
-
+            
             var resultDto = new SubscriptionTypeReadDTO
             {
                 Id = newType.Id,
                 Name = newType.Name,
                 DurationDays = newType.DurationDays,
-                Price = newType.Price
+                Price = newType.Price,
+                ImagePath = string.IsNullOrEmpty(ImageFile) ? null : $"{_urlService.GetBaseUrl()}{ImageFile}"
             };
 
             return ApiResponseHelper.Success(resultDto, "Subscription plan created successfully", 201);
@@ -302,16 +317,17 @@ namespace BLL.Services.Implementations
 
         public async Task<ApiResponse<SubscriptionTypeReadDTO>> UpdateSubscriptionType(int id, SubscriptionTypeCreateDTO dto)
         {
+
             var existingType = await _unitOfWork.SubscriptionTypeRepository.GetAsync(t => t.Id == id);
             if (existingType == null)
             {
                 return ApiResponseHelper.Fail<SubscriptionTypeReadDTO>("Subscription plan not found", 404);
             }
-
+            var ImageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
             existingType.Name = dto.Name;
             existingType.DurationDays = dto.DurationDays;
             existingType.Price = dto.Price;
-
+            existingType.ImagePath = string.IsNullOrEmpty(ImageFile) ? null : ImageFile;
             _unitOfWork.SubscriptionTypeRepository.Update(existingType);
 
             if (await _unitOfWork.SaveChanges() <= 0)
@@ -324,7 +340,9 @@ namespace BLL.Services.Implementations
                 Id = existingType.Id,
                 Name = existingType.Name,
                 DurationDays = existingType.DurationDays,
-                Price = existingType.Price
+                Price = existingType.Price,
+
+                ImagePath = string.IsNullOrEmpty(ImageFile) ? null : $"{_urlService.GetBaseUrl()}{ImageFile}"
             };
 
             return ApiResponseHelper.Success(resultDto, "Subscription plan updated successfully", 200);
@@ -350,7 +368,7 @@ namespace BLL.Services.Implementations
             return ApiResponseHelper.Success(true, "Subscription plan deleted successfully", 200);
         }
 
-     
+        
 
         #endregion   
         

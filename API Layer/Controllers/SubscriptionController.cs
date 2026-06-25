@@ -5,6 +5,7 @@ using DAL.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Buffers.Text;
 using System.Security.Claims;
 
 namespace API_Layer.Controllers
@@ -15,11 +16,13 @@ namespace API_Layer.Controllers
     public class SubscriptionController : ControllerBase
     {
         private readonly ISubscriptionService _subscriptionService;
-
+        
         public SubscriptionController(ISubscriptionService subscriptionService)
         {
             _subscriptionService = subscriptionService;
         }
+
+
 
         #region Subscription Operations (Provider & Admin)
 
@@ -80,6 +83,7 @@ namespace API_Layer.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<List<SubscriptionTypeReadDTO>>>> GetAllPlans()
         {
+            
             var response = await _subscriptionService.GetAllSubscriptionTypes();
             return StatusCode(response.StatusCode, response);
         }
@@ -91,6 +95,7 @@ namespace API_Layer.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<SubscriptionTypeReadDTO>>> CreatePlan(SubscriptionTypeCreateDTO model)
         {
+          
             var response = await _subscriptionService.CreateSubscriptionType(model);
             return StatusCode(response.StatusCode, response);
         }
@@ -102,6 +107,7 @@ namespace API_Layer.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<SubscriptionTypeReadDTO>>> UpdatePlan(int id, SubscriptionTypeCreateDTO model)
         {
+ 
             var response = await _subscriptionService.UpdateSubscriptionType(id, model);
             return StatusCode(response.StatusCode, response);
         }
