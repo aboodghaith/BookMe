@@ -32,9 +32,14 @@ namespace BLL.Services.Implementations
                     400
                 );
             }
-            var ImageFile = await _imageService.UploadImageAsync(service.ImagePath, "images");
+            string? imageFile = null;
+            if (service.ImagePath != null)
+            {
+                imageFile = await _imageService.UploadImageAsync(service.ImagePath, "images");
+            }
+            
 
-            var serviceEntity = MapToEntity(service , providerId , ImageFile);
+            var serviceEntity = MapToEntity(service , providerId , imageFile);
             var TotalWorkMinutes = (serviceEntity.EndWork - serviceEntity.StartWork).TotalMinutes;
 
             if (TotalWorkMinutes < serviceEntity.EstimatedDuration)
@@ -248,13 +253,16 @@ namespace BLL.Services.Implementations
             }
 
 
-            var ImageFile = await _imageService.UploadImageAsync(service.ImagePath, "images");
-
+            string? imageFile = null;
+            if (service.ImagePath != null)
+            {
+                imageFile = await _imageService.UploadImageAsync(service.ImagePath, "images");
+            }
 
             ServiceFromDb.Name = service.Name;
             ServiceFromDb.Description = service.Description;
             ServiceFromDb.Price = service.Price;
-            ServiceFromDb.ImagePath = string.IsNullOrEmpty(ImageFile) ? null : ImageFile;
+            ServiceFromDb.ImagePath = string.IsNullOrEmpty(imageFile) ? null : imageFile;
             ServiceFromDb.StartWork = service.StartWork;
             ServiceFromDb.EndWork = service.EndWork;
             ServiceFromDb.EstimatedDuration = service.EstimatedDuration;

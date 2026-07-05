@@ -53,7 +53,18 @@ namespace API_Layer.Controllers
         {
             var providerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-         
+            var service = await _serviceService.GetServiceByIdAsync(id);
+            if(service?.Data == null)
+            {
+                return StatusCode(service.StatusCode, service);
+            }
+            if (service.Data.ServiceProviderId != providerId)
+            {
+                    return StatusCode(403, ApiResponseHelper.Fail<ServiceDTOForRead>("Forbidden: You can only update your own services.", 403));
+
+
+            }
+
             var subscriptionCheck = await _subscriptionService.IsTheSubscriptionValid(providerId);
             if (!subscriptionCheck.IsSuccess)
             {
@@ -76,7 +87,19 @@ namespace API_Layer.Controllers
             {
                 var providerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-              
+                var service = await _serviceService.GetServiceByIdAsync(id);
+                if (service?.Data == null)
+                {
+                return StatusCode(service.StatusCode, service);
+
+                }
+                if (service.Data.ServiceProviderId != providerId)
+                {
+                    return StatusCode(403, ApiResponseHelper.Fail<object>("Forbidden: You can only delete your own services.", 403));
+
+
+                }
+
                 var subscriptionCheck = await _subscriptionService.IsTheSubscriptionValid(providerId);
                 if (!subscriptionCheck.IsSuccess)
                 {
@@ -84,6 +107,7 @@ namespace API_Layer.Controllers
                 }
             }
 
+         
             var response = await _serviceService.DeleteServiceAsync(id);
             return StatusCode(response.StatusCode, response);
         }

@@ -71,8 +71,12 @@ namespace BLL.Services.Implementations
             {
                 return ApiResponseHelper.Fail<object>("Email already exists", 400);
             }
+            string? imageFile = null;
 
-            var ImageFile = await _imageService.UploadImageAsync(registerDTO.ImagePath, "images");
+            if (registerDTO.ImagePath != null)
+            {
+                imageFile = await _imageService.UploadImageAsync(registerDTO.ImagePath, "images");
+            }
 
             var user = new User
             {
@@ -82,9 +86,10 @@ namespace BLL.Services.Implementations
                 Email = registerDTO.Email,
                 UserName = registerDTO.Email,
                 PhoneNumber = registerDTO.PhoneNumber,
-                Description = registerDTO?.Description ?? string.Empty,
-                ImagePath = string.IsNullOrEmpty(ImageFile) ? null : ImageFile
+                Description = registerDTO.Description ?? string.Empty,
+                ImagePath = imageFile
             };
+            
 
             var result = await _userManager.CreateAsync(user, registerDTO.Password);
 

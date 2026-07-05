@@ -285,14 +285,18 @@ namespace BLL.Services.Implementations
 
         public async Task<ApiResponse<SubscriptionTypeReadDTO>> CreateSubscriptionType(SubscriptionTypeCreateDTO dto)
         {
-           
-            var ImageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
+            string? imageFile = null;
+            if (dto.ImagePath != null)
+            {
+                imageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
+            }
+        
             var newType = new SubscriptionType
             {
                 Name = dto.Name,
                 DurationDays = dto.DurationDays,
                 Price = dto.Price,
-                ImagePath = string.IsNullOrEmpty(ImageFile) ? null : ImageFile
+                ImagePath = string.IsNullOrEmpty(imageFile) ? null : imageFile
 
             };
 
@@ -309,7 +313,7 @@ namespace BLL.Services.Implementations
                 Name = newType.Name,
                 DurationDays = newType.DurationDays,
                 Price = newType.Price,
-                ImagePath = string.IsNullOrEmpty(ImageFile) ? null : $"{_urlService.GetBaseUrl()}{ImageFile}"
+                ImagePath = string.IsNullOrEmpty(imageFile) ? null : $"{_urlService.GetBaseUrl()}{imageFile}"
             };
 
             return ApiResponseHelper.Success(resultDto, "Subscription plan created successfully", 201);
@@ -323,11 +327,16 @@ namespace BLL.Services.Implementations
             {
                 return ApiResponseHelper.Fail<SubscriptionTypeReadDTO>("Subscription plan not found", 404);
             }
-            var ImageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
+            string? imageFile = null;
+            if (dto.ImagePath != null)
+            {
+                imageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
+            }
+           
             existingType.Name = dto.Name;
             existingType.DurationDays = dto.DurationDays;
             existingType.Price = dto.Price;
-            existingType.ImagePath = string.IsNullOrEmpty(ImageFile) ? null : ImageFile;
+            existingType.ImagePath = string.IsNullOrEmpty(imageFile) ? null : imageFile;
             _unitOfWork.SubscriptionTypeRepository.Update(existingType);
 
             if (await _unitOfWork.SaveChanges() <= 0)
@@ -342,7 +351,7 @@ namespace BLL.Services.Implementations
                 DurationDays = existingType.DurationDays,
                 Price = existingType.Price,
 
-                ImagePath = string.IsNullOrEmpty(ImageFile) ? null : $"{_urlService.GetBaseUrl()}{ImageFile}"
+                ImagePath = string.IsNullOrEmpty(imageFile) ? null : $"{_urlService.GetBaseUrl()}{imageFile}"
             };
 
             return ApiResponseHelper.Success(resultDto, "Subscription plan updated successfully", 200);

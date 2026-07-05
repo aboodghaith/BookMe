@@ -154,6 +154,12 @@ namespace API_Layer
 
             var app = builder.Build();
 
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Database.EnsureCreated();
+            }
+
 
             // SeedData
             using (var scope =  app.Services.CreateScope())
@@ -167,12 +173,12 @@ namespace API_Layer
             }
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+
+            
                 app.MapOpenApi();
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+            
             app.UseHttpsRedirection();
 
             app.UseCors("AllowFrontend");

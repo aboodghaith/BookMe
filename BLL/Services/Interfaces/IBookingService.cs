@@ -23,5 +23,7 @@ namespace BLL.Services.Interfaces
         public Task<ApiResponse<List<BookingDTOForRead>>> GetProviderIncomingBookingsAsync(string providerId);
 
 
+        Task<ApiResponse<BookingDTOForRead>> GetBookingByIdAsync(int bookingId);
+
     }
 }

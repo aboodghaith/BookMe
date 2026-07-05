@@ -128,16 +128,22 @@ namespace BLL.Services.Implementations
             {
                 return ApiResponseHelper.Fail<bool>("User not found.", 404);
             }
-            var ImageFile = await _imageService.UploadImageAsync(userDto.ImagePath, "images");
-            
+
+            string? imageFile = null;
+            if (userDto.ImagePath != null)
+            {
+                imageFile = await _imageService.UploadImageAsync(userDto.ImagePath, "images");
+            }
+
+
             user.FirstName = userDto.FirstName;
             user.LastName = userDto.LastName;
             user.PhoneNumber = userDto.PhoneNumber;
             user.Address = userDto.Address;
             user.Description = userDto.Description;
-            if (!string.IsNullOrEmpty(ImageFile))
+            if (!string.IsNullOrEmpty(imageFile))
             {
-                user.ImagePath = ImageFile; 
+                user.ImagePath = imageFile; 
             }
 
             _unitOfWork.UserRepository.Update(user);

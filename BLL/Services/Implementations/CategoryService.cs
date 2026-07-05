@@ -26,7 +26,11 @@ namespace BLL.Services.Implementations
 
         public async Task<ApiResponse<bool>> CreateCategoryAsync(CategoryCreateUpdateDTO dto)
         {
-            var imageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
+            string? imageFile = null;
+            if (dto.ImagePath != null)
+            {
+                imageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
+            }
 
             var category = new Category
             {
@@ -96,7 +100,12 @@ namespace BLL.Services.Implementations
             var category = await _unitOfWork.CategoryRepository.GetAsync(c => c.Id == id);
             if (category == null) return ApiResponseHelper.Fail<bool>("Category not found", 404);
 
-            var imageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
+            string? imageFile = null;
+            if (dto.ImagePath != null)
+            {
+                imageFile = await _imageService.UploadImageAsync(dto.ImagePath, "images");
+            }
+            
 
             category.Name = dto.Name;
             category.Description = dto?.Description ?? string.Empty;

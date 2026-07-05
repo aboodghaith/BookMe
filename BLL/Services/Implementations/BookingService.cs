@@ -60,7 +60,7 @@ namespace BLL.Services.Implementations
 
         public async Task<ApiResponse<object>> AcceptBookingAsync(int bookingId)
         {
-
+           
             
             var booking = await _unitOfWork.BookingRepo.GetAsync(
                  b => b.Id == bookingId && b.Status == BookingStatus.Pending
@@ -218,7 +218,31 @@ namespace BLL.Services.Implementations
 
 
 
+        public async Task<ApiResponse<BookingDTOForRead>> GetBookingByIdAsync(int bookingId)
+        {
+            var booking = await _unitOfWork.BookingRepo.GetAsync(
+                b => b.Id == bookingId,
+                b => b.Service,
+                b => b.Service.ServiceProvider,
+                b => b.Customer
+            );
 
+            if (booking == null)
+            {
+                return ApiResponseHelper.Fail<BookingDTOForRead>(
+                    "Booking not found",
+                    404
+                );
+            }
+
+            var result = MapToReadDTO(booking);
+
+            return ApiResponseHelper.Success<BookingDTOForRead>(
+                result,
+                "Booking retrieved successfully",
+                200
+            );
+        }
 
         private Booking MapToEntity(BookingDTOForCreate dto, Service service , string customerId)
         {

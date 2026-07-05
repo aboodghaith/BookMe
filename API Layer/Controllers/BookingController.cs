@@ -39,6 +39,18 @@ namespace API_Layer.Controllers
         [Authorize(Roles = "ServiceProvider")]
         public async Task<ActionResult<ApiResponse<object>>> AcceptBooking(int id)
         {
+            var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var Booking = await _bookingService.GetBookingByIdAsync(id);
+
+            if(Booking?.Data == null)
+            {
+                return StatusCode(Booking.StatusCode, Booking);
+            }
+
+            if(Booking.Data.CustomerId != customerId)
+            {
+                return StatusCode(403, ApiResponseHelper.Fail<object>("Forbidden: You can only accept your own booking.", 403));
+            }
             var response = await _bookingService.AcceptBookingAsync(id);
             return StatusCode(response.StatusCode, response);
         }
@@ -50,6 +62,19 @@ namespace API_Layer.Controllers
         [Authorize(Roles = "ServiceProvider")]
         public async Task<ActionResult<ApiResponse<object>>> RejectBooking(int id)
         {
+            var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var Booking = await _bookingService.GetBookingByIdAsync(id);
+
+            if (Booking?.Data == null)
+            {
+                return StatusCode(Booking.StatusCode, Booking);
+            }
+
+            if (Booking.Data.CustomerId != customerId)
+            {
+                return StatusCode(403, ApiResponseHelper.Fail<object>("Forbidden: You can only reject your own booking.", 403));
+            }
+
             var response = await _bookingService.RejectBookingAsync(id);
             return StatusCode(response.StatusCode, response);
         }
@@ -62,6 +87,17 @@ namespace API_Layer.Controllers
         public async Task<ActionResult<ApiResponse<object>>> CancelBooking(int id)
         {
             var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var Booking = await _bookingService.GetBookingByIdAsync(id);
+
+            if (Booking?.Data == null)
+            {
+                return StatusCode(Booking.StatusCode, Booking);
+            }
+
+            if (Booking.Data.CustomerId != customerId)
+            {
+                return StatusCode(403, ApiResponseHelper.Fail<object>("Forbidden: You can only cancel your own booking.", 403));
+            }
             var response = await _bookingService.CancelledBookingAsync(id, customerId);
             return StatusCode(response.StatusCode, response);
         }
