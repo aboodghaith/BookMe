@@ -92,7 +92,7 @@ namespace API_Layer.Controllers
         public async Task<ActionResult<ApiResponse<List<UserReadDTO>>>> GetCustomers(int pageNumber, int pageSize = 10)
         {
       
-            var response = await _userService.GetUsersByRoleWithPaginationAsync("Customer", pageNumber, pageSize, true);
+            var response = await _userService.GetUsersByRoleWithPaginationAsync("User", pageNumber, pageSize, true);
             return StatusCode(response.StatusCode, response);
         }
 
