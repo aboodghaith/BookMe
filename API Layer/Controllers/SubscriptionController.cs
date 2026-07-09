@@ -48,7 +48,19 @@ namespace API_Layer.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
-       
+
+        /// <summary>
+        /// Get Subscription (This End Point return the subscription for any user (but if found))
+        /// </summary>
+        [HttpGet("GetSubscriptionById")]
+        public async Task<ActionResult<ApiResponse<SubscriptionReadDTO>>> GetSubscription()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var response = await _subscriptionService.GetSubscriptionById(userId);
+            return StatusCode(response.StatusCode, response);
+
+
+        }
 
         /// <summary>
         /// Get all subscriptions without pagination (Only for Admin)

@@ -38,5 +38,7 @@ namespace BLL.Services.Interfaces
 
         Task<ApiResponse<bool>> DeleteSubscriptionType(int id);
 
+        Task<ApiResponse<SubscriptionReadDTO>> GetSubscriptionById(string ServiceProvider);
+
     }
 }

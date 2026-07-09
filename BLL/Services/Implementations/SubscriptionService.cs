@@ -178,16 +178,16 @@ namespace BLL.Services.Implementations
 
         #region Subscription Read Operations
 
-        public async Task<ApiResponse<SubscriptionReadDTO>> GetSubscriptionById(int subscriptionId)
+        public async Task<ApiResponse<SubscriptionReadDTO>> GetSubscriptionById(string ServiceProvider)
         {
            
-            var sub = await _unitOfWork.SubscriptionRepository.GetAsync(s => s.Id == subscriptionId);
+            var sub = await _unitOfWork.SubscriptionRepository.GetAsync(s => s.ServiceProviderID == ServiceProvider && s.IsActive == true , sp => sp.ServiceProvider);
             if (sub == null)
             {
                 return ApiResponseHelper.Fail<SubscriptionReadDTO>("Subscription not found", 404);
             }
 
-            var userObj = await _userManager.FindByIdAsync(sub.ServiceProviderID);
+            //var userObj = await _userManager.FindByIdAsync(sub.ServiceProviderID);
 
             var dto = new SubscriptionReadDTO
             {
@@ -196,7 +196,7 @@ namespace BLL.Services.Implementations
                 EndDate = sub.EndDate,
                 IsActive = sub.IsActive,
                 ServiceProviderId = sub.ServiceProviderID,
-                ProviderName = userObj?.UserName,
+                ProviderName = sub.ServiceProvider.UserName,
                 SubscriptionTypeId = sub.SubscriptionTypeId,
                 SubscriptionTypeName = sub.SubscriptionTypeName,
                 PricePaid = sub.SubscriptionPrice
@@ -207,7 +207,7 @@ namespace BLL.Services.Implementations
 
         public async Task<ApiResponse<List<SubscriptionReadDTO>>> GetAllSubscriptions()
         {
-            var Subscriptions = await _unitOfWork.SubscriptionRepository.GetAllAsync();
+            var Subscriptions = await _unitOfWork.SubscriptionRepository.GetAllAsync(false , null , null , s => s.ServiceProvider);
             if (Subscriptions == null || !Subscriptions.Any())
             {
                 return ApiResponseHelper.Fail<List<SubscriptionReadDTO>>("No subscriptions found", 404);
@@ -392,7 +392,9 @@ namespace BLL.Services.Implementations
             } 
 
             if(!(DateTime.Now > UserSubscription.EndDate))
+
             {
+            
                 return ApiResponseHelper.Success<bool>(true, "The subscription is still valid");
 
             }

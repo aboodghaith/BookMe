@@ -154,11 +154,11 @@ namespace API_Layer
 
             var app = builder.Build();
 
-            using (var scope = app.Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                db.Database.EnsureCreated();
-            }
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            //    db.Database.EnsureCreated();
+            //}
 
 
             // SeedData
