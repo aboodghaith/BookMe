@@ -20,8 +20,8 @@ namespace API_Layer
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Edit controller to stop return default status code to model state 
-            builder.Services.AddControllers().ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
+           
+            builder.Services.AddControllers();
 
             // Add Cors Policy 
             builder.Services.AddCors(options =>

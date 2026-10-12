@@ -24,7 +24,7 @@ namespace DAL.UnitOfWork
         public IRepository<Category> CategoryRepository { get; private set; }
 
         public IRepository<City> CityRepository { get; private set;}
-
+        
         public IRepository<Subscription> SubscriptionRepository { get; private set;  }
 
         public IRepository<SubscriptionType> SubscriptionTypeRepository { get; private set; }
